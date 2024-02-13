@@ -3,7 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVALUACION FINANCIERA DELPARQUE FOTO VOLTAICO LA LOMA</title>
+    <title>EVALUACION FINANCIERA DEL PARQUE FOTO VOLTAICO LA LOMA</title>
+    <!-- Incluir Bootstrap (agrega este enlace en tu proyecto) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Agregar Chart.js (agrega este enlace en tu proyecto) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Agregar estilos personalizados aquí si es necesario */
+        body {
+            padding: 20px;
+        }
+
+        /* Estilos personalizados para hacer botones redondos */
+        .rounded-button {
+            border-radius: 50%;
+            width: 80px; /* Ajusta el ancho según tus necesidades */
+            height: 80px; /* Ajusta la altura según tus necesidades */
+        }
+    </style>
     <script>
         function calcularVPN() {
             var numAnios = parseInt(document.getElementById('numAnios').value);
@@ -24,6 +41,9 @@
             vpn -= inversionInicial;
 
             document.getElementById('resultadoVPN').innerHTML = 'Valor Presente Neto (VPN): $' + vpn.toFixed(2);
+
+            // No muestra el gráfico automáticamente al calcular VPN
+            //mostrarGraficoBarras(flujos);
         }
 
         function calcularTIR() {
@@ -59,6 +79,9 @@
             }
 
             document.getElementById('resultadoTIR').innerHTML = 'Tasa Interna de Retorno (TIR): ' + tir.toFixed(2) + '%';
+
+            // No muestra el gráfico automáticamente al calcular TIR
+            //mostrarGraficoBarras(flujos);
         }
 
         function calcularPRI() {
@@ -98,6 +121,9 @@
 
             document.getElementById('resultadoPRI').innerHTML = resultadoPRI;
 
+            // No muestra el gráfico automáticamente al calcular PRI
+            //mostrarGraficoBarras(flujos);
+
             // Mostrar el año en que se supera la inversión
             if (priAnios > 0) {
                 var acumuladoElement = document.getElementById('acumuladoSuperado');
@@ -107,6 +133,17 @@
                 var acumuladoElement = document.getElementById('acumuladoSuperado');
                 acumuladoElement.innerHTML = 'La inversión no se recupera en el período especificado.';
             }
+        }
+
+        // Nueva función para calcular y mostrar el punto de equilibrio
+        function calcularPuntoEquilibrio() {
+            var costosFijos = parseFloat(document.getElementById('costosFijos').value);
+            var precioVenta = parseFloat(document.getElementById('precioVenta').value);
+            var costoVariable = parseFloat(document.getElementById('costoVariable').value);
+
+            var puntoEquilibrio = costosFijos / (precioVenta - costoVariable);
+
+            document.getElementById('resultadoPuntoEquilibrio').innerHTML = 'Punto de Equilibrio: ' + puntoEquilibrio.toFixed(2) + ' unidades';
         }
 
         function generarCasillasFlujos() {
@@ -122,6 +159,7 @@
                 var input = document.createElement('input');
                 input.type = 'number';
                 input.id = 'flujoAnio' + i;
+                input.className = 'form-control';
                 input.required = true;
 
                 flujosAnioDiv.appendChild(label);
@@ -129,48 +167,117 @@
                 flujosAnioDiv.appendChild(document.createElement('br'));
             }
         }
+
+        function mostrarGraficoBarras(flujos) {
+            var ctx = document.getElementById('graficoBarras').getContext('2d');
+            
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({ length: flujos.length }, (_, i) => 'Año ' + (i + 1)),
+                    datasets: [{
+                        label: 'Flujos de Efectivo',
+                        data: flujos,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Nueva función para llamar al generar gráfico
+        function generarGrafico() {
+            var numAnios = parseInt(document.getElementById('numAnios').value);
+            var flujos = [];
+
+            for (var i = 1; i <= numAnios; i++) {
+                var flujo = parseFloat(document.getElementById('flujoAnio' + i).value);
+                flujos.push(flujo);
+            }
+
+            mostrarGraficoBarras(flujos);
+        }
     </script>
 </head>
 <body>
-    <h1>EVALUACION FINANCIERA DEL PARQUE FOTO VOLTAICO LA LOMA</h1>
+    <div class="container">
+        <h1 class="mt-5">EVALUACION FINANCIERA DEL PARQUE FOTO VOLTAICO LA LOMA</h1>
 
-    <label for="numAnios">Número de años:</label>
-    <input type="number" id="numAnios" min="1" onchange="generarCasillasFlujos()" required>
+        <div class="mb-3">
+            <label for="numAnios" class="form-label">Número de años:</label>
+            <input type="number" id="numAnios" class="form-control" min="1" onchange="generarCasillasFlujos()" required>
+        </div>
 
-    <br><br>
+        <div class="mb-3">
+            <label for="tasaDescuento" class="form-label">Tasa de descuento (%):</label>
+            <input type="number" id="tasaDescuento" class="form-control" min="0" required>
+        </div>
 
-    <label for="tasaDescuento">Tasa de descuento (%):</label>
-    <input type="number" id="tasaDescuento" min="0" required>
+        <div class="mb-3">
+            <label for="inversionInicial" class="form-label">Inversión Inicial:</label>
+            <input type="number" id="inversionInicial" class="form-control" required>
+        </div>
 
-    <br><br>
+        <h2 class="mt-4">Flujos de efectivo por año:</h2>
 
-    <label for="inversionInicial">Inversión Inicial:</label>
-    <input type="number" id="inversionInicial" required>
+        <div id="flujosAnio" class="mb-3">
+            <!-- Aquí se generan dinámicamente las casillas para los flujos por año -->
+        </div>
 
-    <br><br>
+        <div class="mb-3">
+            <button onclick="calcularVPN()" class="btn btn-primary rounded-button">Calcular VPN</button>
+            <button onclick="calcularTIR()" class="btn btn-success rounded-button">Calcular TIR</button>
+            <button onclick="calcularPRI()" class="btn btn-warning rounded-button">Calcular PRI</button>
+        </div>
 
-    <h2>Flujos de efectivo por año:</h2>
+        <div id="resultadoVPN" class="mb-3"></div>
+        <div id="resultadoTIR" class="mb-3"></div>
+        <div id="resultadoPRI" class="mb-3"></div>
+        <div id="acumuladoSuperado"></div>
 
-    <div id="flujosAnio">
-        <!-- Aquí se generan dinámicamente las casillas para los flujos por año -->
+        <!-- Nuevo botón para generar el gráfico -->
+        <div class="mb-3">
+            <button onclick="generarGrafico()" class="btn btn-info">Generar Gráfico</button>
+        </div>
+
+        <!-- Agrega el elemento canvas para el gráfico de barras -->
+        <canvas id="graficoBarras" width="400" height="200"></canvas>
+
+        <!-- Nuevos elementos para calcular el punto de equilibrio -->
+        <div class="mb-3">
+            <h2 class="mt-4">Punto de Equilibrio:</h2>
+            <label for="costosFijos" class="form-label">Costos Fijos:</label>
+            <input type="number" id="costosFijos" class="form-control" min="0" required>
+            
+            <label for="precioVenta" class="form-label">Precio de Venta por Unidad:</label>
+            <input type="number" id="precioVenta" class="form-control" min="0" required>
+            
+            <label for="costoVariable" class="form-label">Costo Variable por Unidad:</label>
+            <input type="number" id="costoVariable" class="form-control" min="0" required>
+
+            <!-- Nuevo botón para calcular el punto de equilibrio -->
+            <button onclick="calcularPuntoEquilibrio()" class="btn btn-primary mt-3">Calcular Punto de Equilibrio</button>
+            
+            <div id="resultadoPuntoEquilibrio" class="mt-3"></div>
+        </div>
     </div>
 
-    <br>
-
-    <button onclick="calcularVPN()">Calcular VPN</button>
-    <button onclick="calcularTIR()">Calcular TIR</button>
-    <button onclick="calcularPRI()">Calcular PRI</button>
-
-    <br><br>
-
-    <div id="resultadoVPN"></div>
-    <div id="resultadoTIR"></div>
-    <div id="resultadoPRI"></div>
-    <div id="acumuladoSuperado"></div>
+    <!-- Incluir Bootstrap (agrega este script al final del body) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Llama a esta función después de cargar la página para generar casillas de flujo
         generarCasillasFlujos();
     </script>
 </body>
 </html>
+
 
